@@ -1,14 +1,8 @@
-<img src="./docs/src/assets/logo_readme.svg" width="150">
-
 # PeriodicArrays.jl
 
 | **Documentation** | **Downloads** |
 |:-----------------:|:-------------:|
 | [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![Downloads][downloads-img]][downloads-url]
-
-<!-- | **Documentation** | **Digital Object Identifier** | **Citation** | **Downloads** |
-|:-----------------:|:-----------------------------:|:------------:|:-------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![DOI][doi-img]][doi-url] | | [![Downloads][downloads-img]][downloads-url] -->
 
 | **Build Status** | **PkgEval** | **Coverage** | **Style Guide** | **Quality assurance** |
 |:----------------:|:-----------:|:------------:|:---------------:|:---------------------:|
@@ -19,9 +13,6 @@
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://manybodylab.github.io/PeriodicArrays.jl/dev
-
-[doi-img]: https://zenodo.org/badge/DOI/
-[doi-url]: https://doi.org/
 
 [downloads-img]: https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv1%2Ftotal_downloads%2FPeriodicArrays&query=total_requests&label=Downloads
 [downloads-url]: http://juliapkgstats.com/pkg/PeriodicArrays
@@ -93,7 +84,3 @@ julia> a4[i,i]
  11  14  17  21  24
  12  15  18  22  25
 ```
-
----
-
-*This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
