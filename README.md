@@ -32,6 +32,22 @@
 [codestyle-img]: https://img.shields.io/badge/code_style-%E1%9A%B1%E1%9A%A2%E1%9A%BE%E1%9B%81%E1%9A%B2-black
 [codestyle-url]: https://github.com/fredrikekre/Runic.jl
 
+`PeriodicArrays.jl` adds the `PeriodicArray`type, which can be backed by any `AbstractArray`. This package is based on [`CircularArrays.jl`](https://github.com/Vexatos/CircularArrays.jl) and extends its functionality to support user-defined translation rules for periodic indexing. 
+A `PeriodicArray{T,N,A,F}` is an `AbstractArray{T,N}` backed by a data array of type `A<:AbstractArray{T,N}` and a map `f` of type `F`. 
+The map defines how out-of-bounds indices are translated to valid indices in the data array.
+
+`f` can be any callable object (e.g. a function of a struct), which defines 
+```julia 
+f(x, shift::Vararg{Int,N})
+```
+where `x` is an element of the array and shift encodes the unit cell, in which we index.
+`f` has to satisfy the following properties, which are not checked at construction time:
+- The output type of `f` has to be the same as the element type of the data array.
+- `f` is invertible with inverse `f(x, -shift...)`, i.e. it satisfies `f(f(x, shift...), -shift...) == x`.
+
+If `f` is not provided, the identity map is used and the `PeriodicArray` behaves like a `CircularArray`.
+
+This package is compatible with `OffsetArrays.jl`.
 
 ## Installation
 
