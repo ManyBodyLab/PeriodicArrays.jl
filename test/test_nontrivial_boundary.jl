@@ -244,6 +244,7 @@ for f in translation_functions
         @test isa(a2, PeriodicArray{Int, 2})
         @test_throws BoundsError a2[1000]
         @test_throws BoundsError a2[1000] = 14
+        @test a2[2] = -12
 
         a3 = @inferred(a2 .+ 1)
         @test a3 isa PeriodicMatrix{Int64}
