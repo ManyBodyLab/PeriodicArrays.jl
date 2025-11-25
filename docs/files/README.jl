@@ -50,10 +50,6 @@
 # pkg> add git@github.com:ManyBodyLab/PeriodicArrays.jl.git
 # ```
 
-# <!-- ## Citation
-
-# See "Cite this repository" to the right or [`CITATION.cff`](CITATION.cff) for the relevant reference(s). -->
-
 # ## Code Samples
 
 # ```julia
