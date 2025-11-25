@@ -185,7 +185,7 @@ for f in translation_functions
             @test insert!(PeriodicVector([1, 2, 3], f), 0, 4) == PeriodicVector([1, 2, 4, 3], f)
         end
 
-        @testset "doubly Periodic" begin
+        @testset "doubly periodic" begin
             a = PeriodicVector([1, 2, 3, 4, 5], f)
             b = PeriodicVector(a, f)
 
@@ -253,7 +253,7 @@ for f in translation_functions
         a3[3] = -12
         @test a3[3] == -12
 
-        @testset "doubly Periodic" begin
+        @testset "doubly periodic" begin
             a = PeriodicMatrix(b_arr, f)
             da = PeriodicMatrix(a, f)
             d2a = PeriodicMatrix(a)

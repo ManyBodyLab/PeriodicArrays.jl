@@ -188,7 +188,7 @@ end
         @test insert!(PeriodicVector([1, 2, 3]), 0, 4) == PeriodicVector([1, 2, 4, 3])
     end
 
-    @testset "doubly Periodic" begin
+    @testset "doubly periodic" begin
         a = PeriodicVector([1, 2, 3, 4, 5])
         b = PeriodicVector(a)
 
@@ -256,7 +256,7 @@ end
     @test a3 isa PeriodicArray{Int64, 2}
     @test a3 == PeriodicArray(5, (2, 3))
 
-    @testset "doubly Periodic" begin
+    @testset "doubly periodic" begin
         a = PeriodicMatrix(b_arr)
         da = PeriodicMatrix(a)
 
@@ -292,7 +292,7 @@ end
     @test_throws BoundsError c3[2,3] # too few indices
     @test_throws BoundsError c3[CartesianIndex(2,3)]
 
-    @testset "doubly Periodic" begin
+    @testset "doubly periodic" begin
         c = PeriodicArray(t3)
         dc = PeriodicArray(c)
 
