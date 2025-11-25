@@ -244,13 +244,14 @@ for f in translation_functions
         @test isa(a2, PeriodicArray{Int, 2})
         @test_throws BoundsError a2[1000]
         @test_throws BoundsError a2[1000] = 14
-        a2[2] = -12
-        @test a2[2] == -12
 
         a3 = @inferred(a2 .+ 1)
         @test a3 isa PeriodicMatrix{Int64}
         @test a3 isa PeriodicArray{Int64, 2}
         @test a3 == PeriodicArray(5, (2, 3), f)
+
+        a3[3] = -12
+        @test a3[3] == -12
 
         @testset "doubly Periodic" begin
             a = PeriodicMatrix(b_arr, f)
