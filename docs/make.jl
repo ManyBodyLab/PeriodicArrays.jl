@@ -14,7 +14,8 @@ makedocs(;
     format = Documenter.HTML(;
         canonical = "https://manybodylab.github.io/PeriodicArrays.jl",
         edit_link = "main",
-        assets = ["assets/logo.png", "assets/extras.css"],
+        assets = [#"assets/logo.png", 
+        "assets/extras.css"],
     ),
     pages = ["Home" => "index.md", "Reference" => "reference.md"],
 )
