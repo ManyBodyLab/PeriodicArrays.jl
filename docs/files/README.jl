@@ -100,3 +100,7 @@
 #  11  14  17  21  24
 #  12  15  18  22  25
 # ```
+
+# ## License
+
+# PeriodicArrays.jl is licensed under the [MIT License](LICENSE). By using or interacting with this software in any way, you agree to the license of this software.
