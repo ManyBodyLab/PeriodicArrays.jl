@@ -56,7 +56,7 @@
 
 # ## Code Samples
 
-# ```julia-repl
+# ```julia
 # julia> using PeriodicArrays
 # julia> a = PeriodicVector([1,2,3])
 # julia> a[0:4]
