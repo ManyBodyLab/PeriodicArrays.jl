@@ -1,7 +1,7 @@
 name = "PeriodicArrays"
 uuid = "343d6138-6384-4525-8bee-38906309ab36"
 authors = ["Andreas Feuerpfeil <development@manybodylab.com>"]
-version = "0.1.0"
+version = "1.0.0"
 
 [compat]
 julia = "1.10"
