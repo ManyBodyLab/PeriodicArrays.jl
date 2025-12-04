@@ -1,0 +1,5 @@
+[deps]
+PeriodicArrays = "343d6138-6384-4525-8bee-38906309ab36"
+
+[compat]
+PeriodicArrays = "1.0"

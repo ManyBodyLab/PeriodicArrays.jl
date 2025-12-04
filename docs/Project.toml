@@ -1,0 +1,9 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
+PeriodicArrays = "343d6138-6384-4525-8bee-38906309ab36"
+
+[compat]
+Documenter = "1"
+Literate = "2"
+PeriodicArrays = "1.0"
