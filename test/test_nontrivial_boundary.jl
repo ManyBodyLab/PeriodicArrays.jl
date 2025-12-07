@@ -325,4 +325,60 @@ for f in translation_functions
         # TODO: Figure out how to fix indexing for non-trivial f
         #@test a[a .> 4] == 5:9
     end
+
+    @testset "repeat 1D" begin
+        a = PeriodicArray([1, 2, 3], f)
+        # outer as scalar
+        ar = repeat(a; outer = 2)
+        base = parent(a)
+        # expected tiled parent: tiles over shifts 0,1
+        expected = vcat([f(base[i], 0) for i in eachindex(base)]..., [f(base[i], 1) for i in eachindex(base)]...)
+        @test parent(ar) == expected
+        @test size(parent(ar)) == (length(base) * 2,)
+
+        val = 5
+        @test ar.map(val, 1) == a.map(val, 2)
+        @test ar.map(val, 3) == a.map(val, 6)
+
+        # inner repetition
+        ai = repeat(a; inner = 2)
+        @test parent(ai) == repeat(parent(a); inner = 2)
+        @test size(parent(ai)) == (length(base) * 2,)
+
+        # combined inner+outer
+        aio = repeat(a; inner = 2, outer = 3)
+        @test size(parent(aio)) == (length(base) * 2 * 3,)
+
+        # outer as tuple (1D tuple)
+        ar2 = repeat(a; outer = (2,))
+        @test parent(ar2) == expected
+    end
+
+    @testset "repeat 2D" begin
+        b = PeriodicArray(reshape(1:6, 3, 2), f)
+        o1, o2 = 2, 3
+        br = repeat(b; outer = (o1, o2))
+        base = parent(b)
+        expected2 = similar(base, size(base, 1) * o1, size(base, 2) * o2)
+        for t2 in 0:(o2 - 1), t1 in 0:(o1 - 1)
+            for pos in CartesianIndices(base)
+                tgt = (
+                    t1 * size(base, 1) + (pos[1] - firstindex(axes(base, 1)) + 1),
+                    t2 * size(base, 2) + (pos[2] - firstindex(axes(base, 2)) + 1),
+                )
+                @inbounds expected2[tgt...] = f(base[pos], t1, t2)
+            end
+        end
+        @test parent(br) == expected2
+        @test size(parent(br)) == (size(base, 1) * o1, size(base, 2) * o2)
+
+        @test br.map(1, 1, 2) == b.map(1, 2, 6)
+        @test br.map(7, 0, 1) == b.map(7, 0, 3)
+
+        # inner repetition in 2D
+        bi = repeat(b; inner = (2, 1))
+        @test parent(bi) == repeat(parent(b); inner = (2, 1))
+        @test size(parent(bi)) == (size(base, 1) * 2, size(base, 2) * 1)
+    end
+
 end
