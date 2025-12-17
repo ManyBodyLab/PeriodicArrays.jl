@@ -272,7 +272,7 @@ function Base.repeat(A::PeriodicArray{T, N}; inner = nothing, outer = nothing) w
     return PeriodicArray(A_new, map)
 end
 
-function Base.reverse(arr::PeriodicArray{T, N, A, F}; dims=:) where {T, N, A, F}
+function Base.reverse(arr::PeriodicArray{T, N, A, F}; dims = :) where {T, N, A, F}
     dims == Colon() && return _reverse(arr)
     return _reverse(arr, dims)
 end
@@ -287,6 +287,7 @@ function _reverse(arr::PeriodicArray{T, N, A, F}) where {T, N, A, F}
 
     return PeriodicArray(base, map_rev)
 end
+
 function _reverse(arr::PeriodicArray{T, N, A, F}, dims...) where {T, N, A, F}
     base = reverse(parent(arr); dims = dims)
     dimsset = Set(dims)
