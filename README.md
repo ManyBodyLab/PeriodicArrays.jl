@@ -48,10 +48,10 @@ This package is compatible with [`OffsetArrays.jl`](https://github.com/JuliaArra
 
 ## Installation
 
-The package is not yet registered in the Julia general registry. It can be installed trough the package manager with the following command:
+The package is registered in the Julia general registry. It can be installed trough the package manager with the following command:
 
 ```julia-repl
-pkg> add git@github.com:ManyBodyLab/PeriodicArrays.jl.git
+pkg> add PeriodicArrays
 ```
 
 ## Code Samples
