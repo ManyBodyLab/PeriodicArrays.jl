@@ -382,21 +382,21 @@ for f in translation_functions
     end
 
     @testset "reverse" begin
-        a = PeriodicArray([1,2,3], f)
+        a = PeriodicArray([1, 2, 3], f)
         ra = reverse(a)
         @test parent(ra) == reverse(parent(a))
         @test ra[1] == a[3]
         @test ra[2] == a[2]
 
         # 2D reverse across first dimension
-        b = PeriodicArray(reshape(1:6,3,2), f)
+        b = PeriodicArray(reshape(1:6, 3, 2), f)
         rb1 = reverse(b, 1)
-        @test parent(rb1) == reverse(parent(b); dims=1)
-        @test all(rb1[i,j] == b[4 - i, j] for i in -10:10, j in -10:10)
+        @test parent(rb1) == reverse(parent(b); dims = 1)
+        @test all(rb1[i, j] == b[4 - i, j] for i in -10:10, j in -10:10)
 
         # full reverse
         rb = reverse(b)
         @test parent(rb) == reverse(parent(b))
-        @test all(rb[i,j] == b[4 - i, 3 - j] for i in -10:10, j in -10:10)
+        @test all(rb[i, j] == b[4 - i, 3 - j] for i in -10:10, j in -10:10)
     end
 end
