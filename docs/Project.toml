@@ -6,4 +6,4 @@ PeriodicArrays = "343d6138-6384-4525-8bee-38906309ab36"
 [compat]
 Documenter = "1"
 Literate = "2"
-PeriodicArrays = "1.1"
+PeriodicArrays = "1.0"

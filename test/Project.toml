@@ -9,7 +9,7 @@ TestExtras = "5ed8adda-3752-4e41-b88a-e8b09835ee3a"
 
 [compat]
 Aqua = "0.8"
-PeriodicArrays = "1.1"
+PeriodicArrays = "1.0"
 SafeTestsets = "0.1"
 Suppressor = "0.2"
 Test = "1.10"

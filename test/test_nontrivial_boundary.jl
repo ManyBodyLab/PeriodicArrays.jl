@@ -390,7 +390,7 @@ for f in translation_functions
 
         # 2D reverse across first dimension
         b = PeriodicArray(reshape(1:6, 3, 2), f)
-        rb1 = reverse(b, 1)
+        rb1 = reverse(b; dims = 1)
         @test parent(rb1) == reverse(parent(b); dims = 1)
         @test all(rb1[i, j] == b[4 - i, j] for i in -10:10, j in -10:10)
 
