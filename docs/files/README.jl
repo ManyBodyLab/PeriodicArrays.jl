@@ -1,11 +1,11 @@
 # # PeriodicArrays.jl
 
-# `PeriodicArrays.jl` adds the `PeriodicArray` type which can be backed by any `AbstractArray`. The idea of this package is based on [`CircularArrays.jl`](https://github.com/Vexatos/CircularArrays.jl) and extends its functionality to support user-defined translation rules for periodic indexing. 
-# A `PeriodicArray{T,N,A,F}` is an `AbstractArray{T,N}` backed by a data array of type `A<:AbstractArray{T,N}` and a map `f` of type `F`. 
+# `PeriodicArrays.jl` adds the `PeriodicArray` type which can be backed by any `AbstractArray`. The idea of this package is based on [`CircularArrays.jl`](https://github.com/Vexatos/CircularArrays.jl) and extends its functionality to support user-defined translation rules for periodic indexing.
+# A `PeriodicArray{T,N,A,F}` is an `AbstractArray{T,N}` backed by a data array of type `A<:AbstractArray{T,N}` and a map `f` of type `F`.
 # The map defines how data in out-of-bounds indices is translated to valid indices in the data array.
 
-# `f` can be any callable object (e.g. a function or a struct), which defines 
-# ```julia 
+# `f` can be any callable object (e.g. a function or a struct), which defines
+# ```julia
 # f(x, shift::Vararg{Int,N})
 # ```
 # where `x` is an element of the array and shift encodes the unit cell, in which we index.

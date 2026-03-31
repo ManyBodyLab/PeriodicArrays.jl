@@ -2,11 +2,11 @@ using PeriodicArrays
 using Test
 using OffsetArrays
 
-f1(x,shift::Vararg{Int,N}) where {N} = x + sum(shift)
-f2(x,shift::Vararg{Int,N}) where {N} = x + shift[1]
+f1(x, shift::Vararg{Int, N}) where {N} = x + sum(shift)
+f2(x, shift::Vararg{Int, N}) where {N} = x + shift[1]
 struct TestTranslation
 end
-function (f::TestTranslation)(x, shift::Vararg{Int,N}) where {N}
+function (f::TestTranslation)(x, shift::Vararg{Int, N}) where {N}
     return x - sum(shift)
 end
 f3 = TestTranslation()
@@ -14,12 +14,14 @@ translation_functions = [f1, f2, f3]
 
 for f in translation_functions
     @testset "construction" begin
-        @testset "construction ($T)" for T = (Float64, Int)
-            data = rand(T,10)
-            arrays = [PeriodicVector(data, f), PeriodicVector{T}(data, f),
-                    PeriodicArray(data, f), PeriodicArray{T}(data, f), PeriodicArray{T,1}(data, f)]
+        @testset "construction ($T)" for T in (Float64, Int)
+            data = rand(T, 10)
+            arrays = [
+                PeriodicVector(data, f), PeriodicVector{T}(data, f),
+                PeriodicArray(data, f), PeriodicArray{T}(data, f), PeriodicArray{T, 1}(data, f),
+            ]
             @test all(a == first(arrays) for a in arrays)
-            @test all(a isa PeriodicVector{T,Vector{T}} for a in arrays)
+            @test all(a isa PeriodicVector{T, Vector{T}} for a in arrays)
         end
 
         @testset "matrix construction" begin
@@ -33,10 +35,10 @@ for f in translation_functions
     end
     @testset "type stability" begin
         @testset "type stability $(n)d" for n in 1:10
-            a = PeriodicArray(fill(1, ntuple(_->1, n)), f)
+            a = PeriodicArray(fill(1, ntuple(_ -> 1, n)), f)
             @test @inferred(a[1]) isa Int64
             @test @inferred(a[[1]]) isa PeriodicVector{Int64}
-            @test @inferred(a[[1]']) isa PeriodicArray{Int64,2}
+            @test @inferred(a[[1]']) isa PeriodicArray{Int64, 2}
             @test @inferred(axes(a)) isa Tuple{Vararg{AbstractUnitRange}}
             @test @inferred(similar(a)) isa typeof(a)
             @test @inferred(similar(a, Float64, Int8.(size(a)))) isa PeriodicArray{Float64}
@@ -45,7 +47,7 @@ for f in translation_functions
     end
     @testset "display" begin
         @testset "display $(n)d" for n in 1:3
-            data = rand(Int64, ntuple(_->3, n))
+            data = rand(Int64, ntuple(_ -> 3, n))
             v1 = PeriodicArray(data, f)
             io = IOBuffer()
             io_compare = IOBuffer()
@@ -71,7 +73,7 @@ for f in translation_functions
 
         @test size(v1, 1) == 5
         @test parent(v1) == data
-        @test typeof(v1) == PeriodicVector{Int64,Vector{Int64},typeof(f)}
+        @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(f)}
         @test isa(v1, PeriodicVector)
         @test isa(v1, AbstractVector{Int})
         @test !isa(v1, AbstractVector{String})
@@ -94,7 +96,7 @@ for f in translation_functions
         @test prod(v2) == "abcde"^5
 
         @testset "empty/empty!" begin
-            v1 = PeriodicVector([1,2,3], f)
+            v1 = PeriodicVector([1, 2, 3], f)
             @test empty(v1) isa PeriodicVector{Int64}
             @test empty(v1, Float64) isa PeriodicVector{Float64}
             v1 == PeriodicVector([], f)
@@ -108,48 +110,48 @@ for f in translation_functions
 
         @testset "resize!" begin
             @test_throws ArgumentError("new length must be ≥ 0") resize!(PeriodicVector([], f), -2)
-            v = PeriodicVector([1,2,3,4,5,6,7], f)
+            v = PeriodicVector([1, 2, 3, 4, 5, 6, 7], f)
             resize!(v, 3)
             @test length(v) == 3
 
             # ensure defining `resize!` induces `push!` and `append!` methods
             @testset "push!" begin
-                v = PeriodicVector([1,2,3], f)
+                v = PeriodicVector([1, 2, 3], f)
                 push!(v, 42)
-                @test v == PeriodicVector([1,2,3,42], f)
+                @test v == PeriodicVector([1, 2, 3, 42], f)
                 push!(v, -9, -99, -999)
-                @test v == PeriodicVector([1,2,3,42, -9, -99, -999], f)
+                @test v == PeriodicVector([1, 2, 3, 42, -9, -99, -999], f)
             end
 
             @testset "append!" begin
-                v1 = PeriodicVector([1,2,3], f)
+                v1 = PeriodicVector([1, 2, 3], f)
                 append!(v1, [-9, -99, -999])
-                @test v1 == PeriodicVector([1,2,3, -9, -99, -999], f)
+                @test v1 == PeriodicVector([1, 2, 3, -9, -99, -999], f)
 
-                v2 = PeriodicVector([1,2,3], f)
-                append!(v2, PeriodicVector([-1,-2], f))
-                @test v2 == PeriodicVector([1,2,3,-1,-2], f)
+                v2 = PeriodicVector([1, 2, 3], f)
+                append!(v2, PeriodicVector([-1, -2], f))
+                @test v2 == PeriodicVector([1, 2, 3, -1, -2], f)
 
-                v3 = PeriodicVector([1,2,3], f)
+                v3 = PeriodicVector([1, 2, 3], f)
                 append!(v3, [4, 5], [6])
-                @test v3 == PeriodicVector([1,2,3,4,5,6], f)
+                @test v3 == PeriodicVector([1, 2, 3, 4, 5, 6], f)
 
-                v4 = PeriodicVector([1,2,3], f)
-                o4 = OffsetVector([-1,-2,-3], -2:0)
+                v4 = PeriodicVector([1, 2, 3], f)
+                o4 = OffsetVector([-1, -2, -3], -2:0)
                 append!(v4, o4)
-                @test v4 == PeriodicVector([1,2,3,-1,-2,-3], f)
+                @test v4 == PeriodicVector([1, 2, 3, -1, -2, -3], f)
 
-                v5 = PeriodicVector([1,2,3], f)
-                o5 = OffsetVector([-1,-2,-3], -2:0)
+                v5 = PeriodicVector([1, 2, 3], f)
+                o5 = OffsetVector([-1, -2, -3], -2:0)
                 append!(v5, o5, -4)
-                @test v5 == PeriodicVector([1,2,3,-1,-2,-3,-4], f)
+                @test v5 == PeriodicVector([1, 2, 3, -1, -2, -3, -4], f)
             end
         end
 
         @testset "pop!" begin
-            v1 = PeriodicVector([1,2,3,42], f)
+            v1 = PeriodicVector([1, 2, 3, 42], f)
             pop!(v1) == 42
-            @test v1 == PeriodicVector([1,2,3], f)
+            @test v1 == PeriodicVector([1, 2, 3], f)
 
             v2 = PeriodicVector([1], f)
             pop!(v2) == 1
@@ -159,7 +161,7 @@ for f in translation_functions
         end
 
         @testset "sizehint!" begin
-            v = PeriodicVector([1,2,3,4,5,6,7], f)
+            v = PeriodicVector([1, 2, 3, 4, 5, 6, 7], f)
             resize!(v, 1)
             sizehint!(v, 1)
             @test length(v) == 1
@@ -193,7 +195,7 @@ for f in translation_functions
         end
 
         @testset "type stability" begin
-            v3 = @inferred(map(x -> x+1, PeriodicArray([1, 2, 3, 4], f)))
+            v3 = @inferred(map(x -> x + 1, PeriodicArray([1, 2, 3, 4], f)))
             @test v3 isa PeriodicVector{Int64}
             @test v3 == PeriodicArray([2, 3, 4, 5], f)
             @test similar(v3, Base.OneTo(4)) isa typeof(v3)
@@ -234,8 +236,8 @@ for f in translation_functions
         @test f(a1[1, 3], -1, 1) == 99
 
         @test IndexStyle(a1) == IndexStyle(typeof(a1)) == IndexCartesian()
-        @test a1[3] == a1[3,1]
-        @test a1[Int32(4)] == a1[1,2]
+        @test a1[3] == a1[3, 1]
+        @test a1[Int32(4)] == a1[1, 2]
 
         @test a1[2, 3, 1] == 17 # trailing index
         @test a1[2, 3, 99] == 17
@@ -274,24 +276,24 @@ for f in translation_functions
     end
 
     @testset "3-array" begin
-        t3 = collect(reshape(1:24, 2,3,4))
+        t3 = collect(reshape(1:24, 2, 3, 4))
         c3 = PeriodicArray(t3, f)
 
         @test parent(c3) == t3
 
-        @test c3[1,3,3] == f(c3[3,3,3],-1,0,0) == f(c3[3,3,7],-1,0,-1) == f(c3[3,3,7,1],-1,0,-1)
+        @test c3[1, 3, 3] == f(c3[3, 3, 3], -1, 0, 0) == f(c3[3, 3, 7], -1, 0, -1) == f(c3[3, 3, 7, 1], -1, 0, -1)
 
-        @test c3[3,3,7] == f(c3[1,3,3],1,0,1)
+        @test c3[3, 3, 7] == f(c3[1, 3, 3], 1, 0, 1)
 
-        @test c3[3, CartesianIndex(3,7)] == f(c3[1,3,3],1,0,1)
-        @test c3[Int32(3), CartesianIndex(3,7)] == f(c3[1,3,3],1,0,1)
+        @test c3[3, CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
+        @test c3[Int32(3), CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
 
-        @test vec(c3[:, [CartesianIndex()], 1, 5]) == map(x->f(x,0,0,1), vec(t3[:, 1, 1]))
+        @test vec(c3[:, [CartesianIndex()], 1, 5]) == map(x -> f(x, 0, 0, 1), vec(t3[:, 1, 1]))
 
         @test IndexStyle(c3) == IndexStyle(typeof(c3)) == IndexCartesian()
 
-        @test_throws BoundsError c3[2,3] # too few indices
-        @test_throws BoundsError c3[CartesianIndex(2,3)]
+        @test_throws BoundsError c3[2, 3] # too few indices
+        @test_throws BoundsError c3[CartesianIndex(2, 3)]
         @test_throws BoundsError c3[30]
 
         @testset "doubly periodic" begin
@@ -303,13 +305,13 @@ for f in translation_functions
     end
 
     @testset "offset indices" begin
-        i = OffsetArray(1:5,-3)
+        i = OffsetArray(1:5, -3)
         a = PeriodicArray(i, f)
         @test axes(a) == axes(i)
         @test a[1] == 4
-        @test f(a[10],-2) == f(a[-10],2) == a[0] == 3
+        @test f(a[10], -2) == f(a[-10], 2) == a[0] == 3
         @test a[1:10][-10] == 3
-        @test a[i] == OffsetArray([4,5,f(1,1),f(2,1),f(3,1)],-3)
+        @test a[i] == OffsetArray([4, 5, f(1, 1), f(2, 1), f(3, 1)], -3)
 
         @testset "type stability" begin
             @test @inferred(similar(a)) isa PeriodicVector
@@ -318,19 +320,19 @@ for f in translation_functions
             @test @inferred(similar(b, 3:5)) isa PeriodicVector
         end
 
-        circ_a = circshift(a,3)
+        circ_a = circshift(a, 3)
         @test axes(circ_a) == axes(a)
-        @test circ_a[1:5] == [1,2,f(3,1),f(4,1),f(5,1)]
+        @test circ_a[1:5] == [1, 2, f(3, 1), f(4, 1), f(5, 1)]
 
-        j = OffsetArray([true,false,true],1)
-        @test a[j] == [5,f(2,1)]
+        j = OffsetArray([true, false, true], 1)
+        @test a[j] == [5, f(2, 1)]
 
-        data = reshape(1:9,3,3)
-        a = PeriodicArray(OffsetArray(data,-1,-1), f)
+        data = reshape(1:9, 3, 3)
+        a = PeriodicArray(OffsetArray(data, -1, -1), f)
         @test collect(a) == data
-        @test all(a[x,y] == f(data[mod1(x+1,3),mod1(y+1,3)], fld(x,3), fld(y,3)) for x=-10:10, y=-10:10)
-        @test a[i,1] == PeriodicArray(OffsetArray([5,6,f(4,1,0),f(5,1,0),f(6,1,0)],-2:2), f)
-        @test a[CartesianIndex.(i,i)] == PeriodicArray(OffsetArray([5,9,f(1,1,1),f(5,1,1),f(9,1,1)],-2:2), f)
+        @test all(a[x, y] == f(data[mod1(x + 1, 3), mod1(y + 1, 3)], fld(x, 3), fld(y, 3)) for x in -10:10, y in -10:10)
+        @test a[i, 1] == PeriodicArray(OffsetArray([5, 6, f(4, 1, 0), f(5, 1, 0), f(6, 1, 0)], -2:2), f)
+        @test a[CartesianIndex.(i, i)] == PeriodicArray(OffsetArray([5, 9, f(1, 1, 1), f(5, 1, 1), f(9, 1, 1)], -2:2), f)
         # TODO: Figure out how to fix indexing for non-trivial f
         #@test a[a .> 4] == 5:9
     end
