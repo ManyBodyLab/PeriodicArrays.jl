@@ -16,12 +16,12 @@ and periodic indexing as defined by `map`.
 
     array[index...] == map(array[mod1.(index, size)...], fld.(index .- 1, size)...)
 """
-struct PeriodicArray{T, N, A <: AbstractArray{T, N}, F} <: AbstractArray{T,N}
+struct PeriodicArray{T, N, A <: AbstractArray{T, N}, F} <: AbstractArray{T, N}
     data::A
     map::F
-    PeriodicArray{T}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T,N,A,F}(data, map)
-    PeriodicArray{T,N}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T,N,A,F}(data, map)
-    PeriodicArray{T,N,A}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T,N,A,F}(data, map)
+    PeriodicArray{T}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T, N, A, F}(data, map)
+    PeriodicArray{T, N}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T, N, A, F}(data, map)
+    PeriodicArray{T, N, A}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = new{T, N, A, F}(data, map)
 end
 
 """
@@ -30,7 +30,7 @@ end
 Create a `PeriodicArray` backed by `data`.
 `map` is optional and defaults to the identity map.
 """
-PeriodicArray(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = PeriodicArray{T,N}(data, map)
+PeriodicArray(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} = PeriodicArray{T, N}(data, map)
 
 
 PeriodicArray(arr::PeriodicArray, map::F = identity_map) where {F} = arr
@@ -41,7 +41,7 @@ PeriodicArray(arr::PeriodicArray, map::F = identity_map) where {F} = arr
 Create a `PeriodicArray` of size `size` filled with value `def`.
 `map` is optional and defaults to the identity map.
 """
-PeriodicArray(def::T, size, map::F = identity_map) where {T,F} = PeriodicArray(fill(def, size), map)
+PeriodicArray(def::T, size, map::F = identity_map) where {T, F} = PeriodicArray(fill(def, size), map)
 
 """
     PeriodicVector{T, A, F} <: AbstractVector{T}
@@ -61,7 +61,7 @@ Alias for [`PeriodicArray{T, 2, A, F}`](@ref).
 """
 const PeriodicMatrix{T} = PeriodicArray{T, 2}
 
-# Define constructors for PeriodicVector and PeriodicMatrix 
+# Define constructors for PeriodicVector and PeriodicMatrix
 PeriodicVector(args...) = PeriodicArray(args...)
 PeriodicMatrix(args...) = PeriodicArray(args...)
 
@@ -97,13 +97,13 @@ end
 # Special case for trivial map (identical to CelledArrays.jl)
 @inline function Base.getindex(
         arr::PeriodicArray{T, N, A, _identity_map_type}, i::Int
-    ) where {A<:AbstractArray{T, N}} where {T, N}
+    ) where {A <: AbstractArray{T, N}} where {T, N}
     return @inbounds getindex(parent(arr), mod(i, eachindex(IndexLinear(), parent(arr))))
 end
 @inline function Base.setindex!(
         arr::PeriodicArray{T, N, A, _identity_map_type}, v, i::Int
     ) where {A <: AbstractArray{T, N}} where {T, N}
-    @inbounds setindex!(parent(arr), v, mod(i, eachindex(IndexLinear(), parent(arr))))
+    return @inbounds setindex!(parent(arr), v, mod(i, eachindex(IndexLinear(), parent(arr))))
 end
 
 @inline function Base.getindex(
@@ -112,14 +112,14 @@ end
     i_base, i_shift = cell_position(arr, I...)
 
     @inbounds v = getindex(parent(arr), i_base...)
-    all(iszero, i_shift) && return v 
+    all(iszero, i_shift) && return v
     return arr.map(v, i_shift...)
 end
 @inline function Base.setindex!(
         arr::PeriodicArray{T, N, A, F}, v, I::Vararg{Int, N}
-    ) where {T,N,A,F}
+    ) where {T, N, A, F}
     i_base, i_shift = inverse_cell_position(arr, I...)
-    
+
     all(iszero, i_shift) && return @inbounds setindex!(parent(arr), v, i_base...)
     return @inbounds setindex!(parent(arr), arr.map(v, i_shift...), i_base...)
 end
@@ -154,45 +154,56 @@ end
 @inline function Base.checkbounds(arr::PeriodicArray, I...)
     J = Base.to_indices(arr, I)
     length(J) == 1 || length(J) >= ndims(arr) || throw(BoundsError(arr, I))
-    nothing
+    return nothing
 end
 
-@inline function _similar(arr::PeriodicArray, ::Type{T}, dims) where T 
+@inline function _similar(arr::PeriodicArray, ::Type{T}, dims) where {T}
     return PeriodicArray(similar(parent(arr), T, dims), arr.map)
 end
 @inline function Base.similar(
         arr::PeriodicArray, ::Type{T}, dims::Tuple{Base.DimOrInd, Vararg{Base.DimOrInd}}
-    ) where T 
+    ) where {T}
     return _similar(arr, T, dims)
 end
 # Ambiguity resolution with Base
-@inline function Base.similar(arr::PeriodicArray, ::Type{T}, dims::Dims) where T
+@inline function Base.similar(arr::PeriodicArray, ::Type{T}, dims::Dims) where {T}
     return _similar(arr, T, dims)
 end
 @inline function Base.similar(
         arr::PeriodicArray, ::Type{T}, dims::Tuple{Integer, Vararg{Integer}}
-    ) where T
+    ) where {T}
     return _similar(arr, T, dims)
 end
 @inline function Base.similar(
-        arr::PeriodicArray, ::Type{T}, 
+        arr::PeriodicArray, ::Type{T},
         dims::Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo}}}
-    ) where T
+    ) where {T}
     return _similar(arr, T, dims)
 end
 
-@inline function Broadcast.BroadcastStyle(
-        ::Type{PeriodicArray{T, N, A, F}}
-    ) where {T, N, A, F} 
-    return Broadcast.ArrayStyle{PeriodicArray{T, N, A, F}}()
+struct PeriodicArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
+PeriodicArrayStyle{N}(::Val{M}) where {N, M} = PeriodicArrayStyle{M}()
+
+Broadcast.BroadcastStyle(::Type{<:PeriodicArray{T, N}}) where {T, N} = PeriodicArrayStyle{N}()
+Broadcast.BroadcastStyle(::PeriodicArrayStyle{M}, ::PeriodicArrayStyle{N}) where {M, N} = PeriodicArrayStyle{max(M, N)}()
+Broadcast.BroadcastStyle(::PeriodicArrayStyle{M}, ::Broadcast.DefaultArrayStyle{N}) where {M, N} = PeriodicArrayStyle{max(M, N)}()
+Broadcast.BroadcastStyle(::Broadcast.DefaultArrayStyle{N}, ::PeriodicArrayStyle{M}) where {N, M} = PeriodicArrayStyle{max(N, M)}()
+
+_find_pa(bc::Broadcast.Broadcasted) = _find_pa(bc.args...)
+_find_pa(a::Broadcast.Extruded, rest...) = _find_pa(a.x, rest...)
+_find_pa() = nothing
+_find_pa(a::PeriodicArray, rest...) = a
+_find_pa(a::Broadcast.Broadcasted, rest...) =
+let r = _find_pa(a)
+    r !== nothing ? r : _find_pa(rest...)
 end
+_find_pa(::Any, rest...) = _find_pa(rest...)
+
 @inline function Base.similar(
-        bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PeriodicArray{T, N, A, F}}}, ::Type{ElType}
-    ) where {T, N, A, F, ElType} 
-    return PeriodicArray(
-        similar(convert(Broadcast.Broadcasted{typeof(Broadcast.BroadcastStyle(A))}, bc), ElType),
-        bc.args[1].map
-    )
+        bc::Broadcast.Broadcasted{PeriodicArrayStyle{N}}, ::Type{ElType}
+    ) where {N, ElType}
+    pa = _find_pa(bc)
+    return PeriodicArray(similar(Array{ElType, N}, axes(bc)), pa.map)
 end
 
 @inline Base.dataids(arr::PeriodicArray) = Base.dataids(parent(arr))
@@ -200,13 +211,12 @@ end
 function Base.showarg(io::IO, arr::PeriodicArray, toplevel)
     print(io, ndims(arr) == 1 ? "PeriodicVector(" : "PeriodicArray(")
     Base.showarg(io, parent(arr), false)
-    print(io, ')')
+    return print(io, ')')
     # toplevel && print(io, " with eltype ", eltype(arr))
 end
 
 
-
-Base.empty(a::PeriodicVector{T}, ::Type{U}=T) where {T, U} = PeriodicVector{U}(U[], a.map)
+Base.empty(a::PeriodicVector{T}, ::Type{U} = T) where {T, U} = PeriodicVector{U}(U[], a.map)
 Base.empty!(a::PeriodicVector) = (empty!(parent(a)); a)
 Base.push!(a::PeriodicVector, x...) = (push!(parent(a), x...); a)
 Base.append!(a::PeriodicVector, items) = (append!(parent(a), items); a)
