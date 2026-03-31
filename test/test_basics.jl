@@ -206,8 +206,21 @@ end
         @test v4 == PeriodicArray([2, 3, 4, 5])
 
         v5 = v4 .> 3
-        @test v5 isa PeriodicVector{Bool, BitVector}
+        @test v5 isa PeriodicVector{Bool, Vector{Bool}}
         @test v5 == PeriodicArray([0, 0, 1, 1])
+
+        # scalar-first broadcast (previously: FieldError on `map`)
+        v6 = @inferred(1 .+ PeriodicArray([1, 2, 3, 4]))
+        @test v6 isa PeriodicVector{Int64}
+        @test v6 == PeriodicArray([2, 3, 4, 5])
+
+        # two PeriodicArrays with different element types (previously: fell back to plain Array)
+        v7 = @inferred(PeriodicArray([1, 2, 3]) .+ PeriodicArray([1.0, 2.0, 3.0]))
+        @test v7 isa PeriodicVector{Float64}
+
+        # PeriodicArray broadcast with plain array
+        v8 = @inferred(PeriodicArray([1, 2, 3]) .+ [10, 20, 30])
+        @test v8 isa PeriodicVector{Int64}
     end
 end
 

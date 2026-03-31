@@ -203,8 +203,17 @@ for f in translation_functions
             @test v4 == PeriodicArray([2, 3, 4, 5], f)
 
             v5 = v4 .> 3
-            @test v5 isa PeriodicVector{Bool, BitVector}
+            @test v5 isa PeriodicVector{Bool, Vector{Bool}}
             @test v5 == PeriodicArray([0, 0, 1, 1], f)
+
+            # scalar-first broadcast (previously: FieldError on `map`)
+            v6 = @inferred(1 .+ PeriodicArray([1, 2, 3, 4], f))
+            @test v6 isa PeriodicVector{Int64}
+            @test v6 == PeriodicArray([2, 3, 4, 5], f)
+
+            # PeriodicArray broadcast with plain array
+            v7 = @inferred(PeriodicArray([1, 2, 3], f) .+ [10, 20, 30])
+            @test v7 isa PeriodicVector{Int64}
         end
     end
 
