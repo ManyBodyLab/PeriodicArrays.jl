@@ -339,12 +339,34 @@ end
         end
     end
 
+    @testset "AbstractVector shifts" begin
+        a = PeriodicVector([1, 2, 3, 4, 5])
+        @test circshift(a, [2]) == circshift(a, 2)
+        @test circshift(a, [-1]) == circshift(a, -1)
+
+        b = PeriodicMatrix([1 2 3; 4 5 6])
+        for s in ((0, 0), (1, 0), (0, 1), (1, 2))
+            cs = circshift(b, collect(s))
+            @test all(cs[i, j] == b[i - s[1], j - s[2]] for i in -5:5, j in -5:5)
+        end
+    end
+
     @testset "circshift! 3-arg" begin
         a = PeriodicVector([1, 2, 3, 4, 5])
         dest = similar(a)
         circshift!(dest, a, 2)
         @test dest == circshift(a, 2)
         @test parent(a) == [1, 2, 3, 4, 5]
+
+        # empty tuple: no shift
+        dest2 = similar(a)
+        circshift!(dest2, a, ())
+        @test dest2 == a
+
+        # AbstractVector shifts
+        dest3 = similar(a)
+        circshift!(dest3, a, [2])
+        @test dest3 == circshift(a, 2)
     end
 
     @testset "circshift! in-place" begin
@@ -352,6 +374,86 @@ end
         expected = circshift(a, 2)
         circshift!(a, 2)
         @test a == expected
+    end
+
+    @testset "circshift! 2D in-place" begin
+        b = PeriodicMatrix([1 2 3; 4 5 6])
+        expected = circshift(b, (1, 2))
+        circshift!(b, (1, 2))
+        @test b == expected
+    end
+end
+
+@testset "reverse" begin
+    @testset "1D" begin
+        a = PeriodicVector([1, 2, 3, 4, 5])
+        ra = reverse(a)
+        @test parent(ra) == [5, 4, 3, 2, 1]
+        @test ra[1] == a[5]
+        @test ra[3] == a[3]
+        # periodic: ra[i] == a[n+1-i] for all i
+        @test all(ra[i] == a[6 - i] for i in -20:20)
+    end
+
+    @testset "2D full" begin
+        b_arr = [1 2 3; 4 5 6]
+        b = PeriodicMatrix(b_arr)
+        rb = reverse(b)
+        @test parent(rb) == reverse(b_arr)
+        @test all(rb[i, j] == b[3 - i, 4 - j] for i in -5:5, j in -5:5)
+    end
+
+    @testset "2D partial" begin
+        b_arr = [1 2 3; 4 5 6]
+        b = PeriodicMatrix(b_arr)
+
+        rb1 = reverse(b; dims = 1)
+        @test parent(rb1) == reverse(b_arr; dims = 1)
+        @test all(rb1[i, j] == b[3 - i, j] for i in -5:5, j in -5:5)
+
+        rb2 = reverse(b; dims = 2)
+        @test parent(rb2) == reverse(b_arr; dims = 2)
+        @test all(rb2[i, j] == b[i, 4 - j] for i in -5:5, j in -5:5)
+    end
+end
+
+@testset "repeat" begin
+    @testset "1D" begin
+        a = PeriodicVector([1, 2, 3])
+
+        # outer as scalar — identity map tiles data unchanged
+        ar = repeat(a; outer = 2)
+        @test parent(ar) == [1, 2, 3, 1, 2, 3]
+        @test length(ar) == 6
+
+        # outer as tuple
+        ar2 = repeat(a; outer = (2,))
+        @test parent(ar2) == parent(ar)
+
+        # inner repetition
+        ai = repeat(a; inner = 2)
+        @test parent(ai) == [1, 1, 2, 2, 3, 3]
+        @test length(ai) == 6
+
+        # combined inner + outer
+        aio = repeat(a; inner = 2, outer = 3)
+        @test length(aio) == 18
+        @test parent(aio) == repeat(parent(ai); outer = 3)
+    end
+
+    @testset "2D" begin
+        b_arr = [1 2; 3 4; 5 6]
+        b = PeriodicMatrix(b_arr)
+
+        # outer repetition
+        br = repeat(b; outer = (2, 3))
+        @test size(br) == (6, 6)
+        @test parent(br) == repeat(b_arr; outer = (2, 3))
+
+        # inner repetition
+        bi = repeat(b; inner = (1, 2))
+        @test parent(bi) == repeat(b_arr; inner = (1, 2))
+        @test size(bi) == (3, 4)
     end
 end
 

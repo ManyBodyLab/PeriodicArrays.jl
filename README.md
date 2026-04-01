@@ -98,6 +98,32 @@ julia> a4[i,i]
  12  15  18  22  25
 ```
 
+## Known Limitations
+
+**Iterated indexing for mutation does not work** when the map is non-trivial.
+For a `PeriodicArray` whose elements are themselves mutable (e.g. an array of matrices), writing
+
+```julia
+x[out_of_bounds_index][i, j] = value
+```
+
+silently does nothing to `x`. The reason is that `x[out_of_bounds_index]` applies the map and returns a *new, transformed copy* of the element; the subsequent assignment mutates only that temporary object, not the underlying data.
+
+For in-bounds indices the element is returned by reference and mutation works as expected.
+As a workaround, operate directly on the underlying data:
+
+```julia
+parent(x)[mod_index][i, j] = value   # bypasses the map entirely
+```
+
+or set the whole element at once (which goes through `setindex!` on `x` and correctly applies the inverse map):
+
+```julia
+tmp = copy(x[out_of_bounds_index])
+tmp[i, j] = value
+x[out_of_bounds_index] = tmp
+```
+
 ## License
 
 PeriodicArrays.jl is licensed under the [MIT License](LICENSE). By using or interacting with this software in any way, you agree to the license of this software.
