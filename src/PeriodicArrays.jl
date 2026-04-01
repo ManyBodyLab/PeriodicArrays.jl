@@ -69,7 +69,7 @@ PeriodicMatrix(args...) = PeriodicArray(args...)
 Base.IndexStyle(::Type{PeriodicArray{T, N, A, F}}) where {T, N, A, F} = IndexCartesian()
 Base.IndexStyle(::Type{<:PeriodicVector}) = IndexLinear()
 
-function cell_position(arr::AbstractArray{T, N}, I::Vararg{Int, N}) where {T, N}
+function cell_position(arr::AbstractArray{T, N}, I::Vararg{Integer, N}) where {T, N}
     axs = axes(arr)
     i_base = ntuple(N) do d
         ax = axs[d]
@@ -81,7 +81,7 @@ function cell_position(arr::AbstractArray{T, N}, I::Vararg{Int, N}) where {T, N}
     i_shift = ntuple(d -> fld(I[d] - i_base[d], length(axs[d])), N)
     return i_base, i_shift
 end
-function inverse_cell_position(arr::AbstractArray{T, N}, I::Vararg{Int, N}) where {T, N}
+function inverse_cell_position(arr::AbstractArray{T, N}, I::Vararg{Integer, N}) where {T, N}
     axs = axes(arr)
     i_base = ntuple(N) do d
         ax = axs[d]
@@ -269,7 +269,7 @@ function Base.repeat(A::PeriodicArray{T, N}; inner = nothing, outer = nothing) w
             end
         end
 
-        @inline function map_new(x::T, shift::Vararg{Int, N})
+        @inline function map_new(x, shift::Vararg{Integer, N})
             # shifts passed to this map refer to super-cell shifts; amplify
             # by `outer` to convert them to original unit-cell shifts.
             amplified = ntuple(i -> shift[i] * outer[i], N)
@@ -282,6 +282,51 @@ function Base.repeat(A::PeriodicArray{T, N}; inner = nothing, outer = nothing) w
     return PeriodicArray(A_new, map)
 end
 
+_circshift_amounts(::Val{N}, s::Integer) where {N} = ntuple(d -> d == 1 ? Int(s) : 0, N)
+_circshift_amounts(::Val{N}, s) where {N} = ntuple(d -> d <= length(s) ? Int(s[d]) : 0, N)
+
+function _circshift_pa!(
+        dest::PeriodicArray{T, N}, src::PeriodicArray{T, N}, shifts
+    ) where {T, N}
+    s = _circshift_amounts(Val(N), shifts)
+    src_data = parent(src)
+    dest_data = parent(dest)
+    for k in CartesianIndices(dest_data)
+        i = ntuple(d -> k[d] - s[d], N)
+        i_base, i_shift = cell_position(src_data, i...)
+        v = src_data[i_base...]
+        dest_data[k] = src.map(v, i_shift...)
+    end
+    return dest
+end
+
+# circshift: multiple signatures to disambiguate from Base methods
+Base.circshift(arr::PeriodicArray{T, N}, shifts::NTuple{M, Integer}) where {T, N, M} =
+    _circshift_pa!(similar(arr), arr, shifts)
+Base.circshift(arr::PeriodicArray{T, N}, shift::Real) where {T, N} =
+    _circshift_pa!(similar(arr), arr, shift)
+Base.circshift(arr::PeriodicArray{T, N}, shifts::AbstractVector{<:Integer}) where {T, N} =
+    _circshift_pa!(similar(arr), arr, shifts)
+
+# circshift! 2-arg (in-place)
+function Base.circshift!(arr::PeriodicArray{T, N}, shifts) where {T, N}
+    src = PeriodicArray(copy(parent(arr)), arr.map)
+    return _circshift_pa!(arr, src, shifts)
+end
+# disambiguate with Base.circshift!(::AbstractVector, ::Integer)
+Base.circshift!(arr::PeriodicVector, shift::Integer) = circshift!(arr, (shift,))
+
+# circshift! 3-arg: specific shift types to disambiguate from Base methods
+Base.circshift!(
+    dest::PeriodicArray{T, N}, src::PeriodicArray{T, N}, shifts::NTuple{M, Integer}
+) where {T, N, M} = _circshift_pa!(dest, src, shifts)
+Base.circshift!(
+    dest::PeriodicArray{T, N}, src::PeriodicArray{T, N}, ::Tuple{}
+) where {T, N} = _circshift_pa!(dest, src, ())
+Base.circshift!(
+    dest::PeriodicArray{T, N}, src::PeriodicArray{T, N}, shifts::AbstractVector{<:Integer}
+) where {T, N} = _circshift_pa!(dest, src, shifts)
+
 function Base.reverse(arr::PeriodicArray{T, N, A, F}; dims = :) where {T, N, A, F}
     dims == Colon() && return _reverse(arr)
     return _reverse(arr, dims)
@@ -290,7 +335,7 @@ end
 function _reverse(arr::PeriodicArray{T, N, A, F}) where {T, N, A, F}
     base = reverse(parent(arr))
 
-    @inline function map_rev(x::T, shifts::Vararg{Int, N})
+    @inline function map_rev(x, shifts::Vararg{Integer, N})
         neg = ntuple(i -> -shifts[i], N)
         return arr.map(x, neg...)
     end
@@ -302,7 +347,7 @@ function _reverse(arr::PeriodicArray{T, N, A, F}, dims...) where {T, N, A, F}
     base = reverse(parent(arr); dims = dims)
     dimsset = Set(dims)
 
-    @inline function map_rev(x::T, shifts::Vararg{Int, N})
+    @inline function map_rev(x, shifts::Vararg{Integer, N})
         adj = ntuple(i -> (i in dimsset) ? -shifts[i] : shifts[i], N)
         return arr.map(x, adj...)
     end
