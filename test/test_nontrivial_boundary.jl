@@ -322,7 +322,7 @@ for f in translation_functions
 
         circ_a = circshift(a, 3)
         @test axes(circ_a) == axes(a)
-        @test circ_a[1:5] == [1, 2, f(3, 1), f(4, 1), f(5, 1)]
+        @test circ_a[1:5] == [1, 2, 3, 4, 5]
 
         j = OffsetArray([true, false, true], 1)
         @test a[j] == [5, f(2, 1)]
@@ -409,5 +409,51 @@ for f in translation_functions
         rb = reverse(b)
         @test parent(rb) == reverse(parent(b))
         @test all(rb[i, j] == b[4 - i, 3 - j] for i in -10:10, j in -10:10)
+    end
+
+    @testset "circshift" begin
+        @testset "1D" begin
+            data = [1, 2, 3, 4, 5]
+            a = PeriodicVector(data, f)
+            # result[k] == a[k - s] for all k, verified across many shifts and indices
+            for s in (-3, -1, 0, 1, 2, 5)
+                cs = circshift(a, s)
+                @test all(cs[i] == a[i - s] for i in -20:20)
+            end
+            # the "seam": shift by 1 pulls a[0] (which applies f with cell shift -1) into position 1
+            cs1 = circshift(a, 1)
+            @test cs1[1] == a[0]
+            @test cs1[1] == f(data[end], -1)
+        end
+
+        @testset "2D" begin
+            b = PeriodicArray(reshape(1:6, 3, 2), f)
+            for s in ((1, 0), (0, 1), (1, 1), (-1, 2))
+                cs = circshift(b, s)
+                @test all(cs[i, j] == b[i - s[1], j - s[2]] for i in -10:10, j in -10:10)
+            end
+        end
+
+        @testset "roundtrip" begin
+            a = PeriodicVector([1, 2, 3, 4, 5], f)
+            for s in (-3, 0, 1, 2)
+                @test parent(circshift(circshift(a, s), -s)) == parent(a)
+            end
+        end
+
+        @testset "circshift! 3-arg" begin
+            a = PeriodicVector([1, 2, 3, 4, 5], f)
+            dest = similar(a)
+            circshift!(dest, a, 2)
+            @test all(dest[i] == a[i - 2] for i in 1:5)
+            @test parent(a) == [1, 2, 3, 4, 5]
+        end
+
+        @testset "circshift! in-place" begin
+            a = PeriodicVector([1, 2, 3, 4, 5], f)
+            expected = circshift(a, 2)
+            circshift!(a, 2)
+            @test parent(a) == parent(expected)
+        end
     end
 end

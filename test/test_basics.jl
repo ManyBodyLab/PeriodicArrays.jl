@@ -316,6 +316,45 @@ end
     end
 end
 
+@testset "circshift" begin
+    @testset "1D" begin
+        data = [1, 2, 3, 4, 5]
+        a = PeriodicVector(data)
+        @test circshift(a, 1) == PeriodicVector([5, 1, 2, 3, 4])
+        @test circshift(a, -1) == PeriodicVector([2, 3, 4, 5, 1])
+        @test circshift(a, 0) == a
+        @test circshift(a, length(a)) == a
+        for s in (-3, -1, 0, 2, 5)
+            cs = circshift(a, s)
+            @test all(cs[i] == a[i - s] for i in -20:20)
+        end
+    end
+
+    @testset "2D" begin
+        data = [1 2 3; 4 5 6]
+        a = PeriodicMatrix(data)
+        for s in ((0, 0), (1, 0), (0, 1), (1, 2), (-1, -1))
+            cs = circshift(a, s)
+            @test all(cs[i, j] == a[i - s[1], j - s[2]] for i in -5:5, j in -5:5)
+        end
+    end
+
+    @testset "circshift! 3-arg" begin
+        a = PeriodicVector([1, 2, 3, 4, 5])
+        dest = similar(a)
+        circshift!(dest, a, 2)
+        @test dest == circshift(a, 2)
+        @test parent(a) == [1, 2, 3, 4, 5]
+    end
+
+    @testset "circshift! in-place" begin
+        a = PeriodicVector([1, 2, 3, 4, 5])
+        expected = circshift(a, 2)
+        circshift!(a, 2)
+        @test a == expected
+    end
+end
+
 @testset "offset indices" begin
     i = OffsetArray(1:5, -3)
     a = PeriodicArray(i)
