@@ -73,7 +73,7 @@ for f in translation_functions
 
         @test size(v1, 1) == 5
         @test parent(v1) == data
-        @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(f)}
+        @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(f), PeriodicArrays.NegatedShiftMap{typeof(f)}}
         @test isa(v1, PeriodicVector)
         @test isa(v1, AbstractVector{Int})
         @test !isa(v1, AbstractVector{String})

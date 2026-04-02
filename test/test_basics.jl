@@ -71,7 +71,7 @@ end
 
     @test size(v1, 1) == 5
     @test parent(v1) == data
-    @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(PeriodicArrays.identity_map)}
+    @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(PeriodicArrays.identity_map), typeof(PeriodicArrays.identity_map)}
     @test isa(v1, PeriodicVector)
     @test isa(v1, AbstractVector{Int})
     @test !isa(v1, AbstractVector{String})
