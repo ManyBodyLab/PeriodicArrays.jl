@@ -43,9 +43,6 @@ where `x` is an element of the array and `shift` encodes the unit cell in which 
 `PeriodicArray(data, fmap, imap)`.
 If neither map is provided, both default to the identity and the array behaves like a `CircularArray`.
 
-**Constraints on `fmap`** (not checked at construction time):
-- The output type of `fmap` must be the same as the element type of the data array.
-
 **Constraints on `imap`** (the inverse map used by `setindex!`):
 - `imap` must satisfy `imap(fmap(x, shift...), shift...) == x` for all valid `x` and
   `shift`, so that round-tripping a value through `getindex`/`setindex!` is lossless.
@@ -54,7 +51,7 @@ If neither map is provided, both default to the identity and the array behaves l
   `fmap(fmap(x, s...), -s...) == x`.
 - If `fmap` does **not** satisfy the self-inverse property, supply a custom `imap`.
   If mutation through out-of-bounds indices should be explicitly forbidden, pass an
-  `imap` that throws:
+  `imap` that e.g. throws:
   ```julia
   imap_error(x, shift...) = error("mutation through out-of-bounds indices is not supported")
   a = PeriodicArray(data, fmap, imap_error)
@@ -127,7 +124,7 @@ silently does nothing to `x`. The reason is that `x[out_of_bounds_index]` applie
 
 For in-bounds indices the element is returned by reference and mutation works as expected.
 
-**Recommended workaround — `mapped_ref`:**
+**Workaround — `mapped_ref`:**
 
 ```julia
 ref = mapped_ref(x, out_of_bounds_index)
@@ -137,22 +134,6 @@ ref[i, j] = value   # applies imap and writes back into parent(x)
 `mapped_ref` returns a `MappedRef`: a lazy wrapper that applies the forward map on reads
 and the inverse map on writes, so no temporary copy is created and the mutation propagates
 correctly into the underlying data.
-
-**Alternative workarounds** (lower-level):
-
-Operate directly on the underlying data (bypasses the map entirely):
-
-```julia
-parent(x)[mod_index][i, j] = value
-```
-
-Or set the whole element at once (goes through `setindex!` on `x` and applies `imap`):
-
-```julia
-tmp = copy(x[out_of_bounds_index])
-tmp[i, j] = value
-x[out_of_bounds_index] = tmp
-```
 
 ## License
 

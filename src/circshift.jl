@@ -11,7 +11,7 @@ function _circshift_pa!(
         i = ntuple(d -> k[d] - s[d], N)
         i_base, i_shift = cell_position(src_data, i...)
         v = src_data[i_base...]
-        dest_data[k] = src.map(v, i_shift...)
+        dest_data[k] = src.fmap(v, i_shift...)
     end
     return dest
 end
@@ -26,7 +26,7 @@ Base.circshift(arr::PeriodicArray{T, N}, shifts::AbstractVector{<:Integer}) wher
 
 # circshift! 2-arg (in-place)
 function Base.circshift!(arr::PeriodicArray{T, N}, shifts) where {T, N}
-    src = PeriodicArray(copy(parent(arr)), arr.map, arr.imap)
+    src = PeriodicArray(copy(parent(arr)), arr.fmap, arr.imap)
     return _circshift_pa!(arr, src, shifts)
 end
 # disambiguate with Base.circshift!(::AbstractVector, ::Integer)

@@ -8,7 +8,7 @@ function _reverse(arr::PeriodicArray{T, N, A, F}) where {T, N, A, F}
 
     @inline function map_rev(x, shifts::Vararg{Integer, N})
         neg = ntuple(i -> -shifts[i], N)
-        return arr.map(x, neg...)
+        return arr.fmap(x, neg...)
     end
 
     return PeriodicArray(base, map_rev)
@@ -20,7 +20,7 @@ function _reverse(arr::PeriodicArray{T, N, A, F}, dims...) where {T, N, A, F}
 
     @inline function map_rev(x, shifts::Vararg{Integer, N})
         adj = ntuple(i -> (i in dimsset) ? -shifts[i] : shifts[i], N)
-        return arr.map(x, adj...)
+        return arr.fmap(x, adj...)
     end
 
     return PeriodicArray(base, map_rev)

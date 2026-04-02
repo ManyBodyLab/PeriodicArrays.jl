@@ -12,9 +12,9 @@ Obtain a `MappedRef` via [`mapped_ref`](@ref) rather than constructing it direct
 """
 struct MappedRef{E, N, T <: AbstractArray{E, N}, S <: Tuple, F, G} <: AbstractArray{E, N}
     ref::T   # direct reference into parent(arr) — NOT a copy
-    shift::S # original periodic shift (same sign convention as PeriodicArray.map)
-    fmap::F  # forward map: (scalar, shift...) -> mapped_scalar
-    imap::G  # inverse map: (val, shift...) -> original_val
+    shift::S # original periodic shift (same sign convention as PeriodicArray.fmap)
+    fmap::F  # forward fmap: (scalar, shift...) -> mapped_scalar
+    imap::G  # inverse fmap: (val, shift...) -> original_val
 end
 
 Base.size(r::MappedRef) = size(r.ref)
@@ -37,7 +37,7 @@ Return a lazy mutable wrapper for the element at periodic index `I...` in `arr`.
 
 For in-bounds indices (zero shift) the raw element is returned directly, so normal
 Julia mutation semantics apply. For out-of-bounds (wrapped) indices a `MappedRef` is
-returned: reading through it applies `arr.map` element-wise; writing through it applies
+returned: reading through it applies `arr.fmap` element-wise; writing through it applies
 `arr.imap` element-wise and stores the result back into the underlying data.
 
 # Example
@@ -55,5 +55,5 @@ function mapped_ref(arr::PeriodicArray{T, N}, I::Vararg{Int, N}) where {T <: Abs
     i_base, i_shift = cell_position(arr, I...)
     ref = @inbounds parent(arr)[i_base...]
     all(iszero, i_shift) && return ref
-    return MappedRef(ref, i_shift, arr.map, arr.imap)
+    return MappedRef(ref, i_shift, arr.fmap, arr.imap)
 end

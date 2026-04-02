@@ -2,62 +2,62 @@ identity_map(x, ::Vararg{Any}) = x
 const _identity_map_type = typeof(identity_map)
 
 struct NegatedShiftMap{F}
-    map::F
+    fmap::F
 end
-(m::NegatedShiftMap)(x, shifts::Vararg{Integer}) = m.map(x, ntuple(i -> -shifts[i], length(shifts))...)
+(m::NegatedShiftMap)(x, shifts::Vararg{Integer}) = m.fmap(x, ntuple(i -> -shifts[i], length(shifts))...)
 
 """
     PeriodicArray{T, N, A, F, G} <: AbstractArray{T, N}
 
 `N`-dimensional array backed by an `AbstractArray{T, N}` of type `A` with fixed size
-and periodic indexing as defined by `map` and `imap`.
+and periodic indexing as defined by `fmap` and `imap`.
 
-    array[index...] == map(array[mod1.(index, size)...], fld.(index .- 1, size)...)
+    array[index...] == fmap(array[mod1.(index, size)...], fld.(index .- 1, size)...)
 
-`imap` is the inverse map used for `setindex!`, defaulting to `map` with negated shifts.
+`imap` is the inverse fmap used for `setindex!`, defaulting to `fmap` with negated shifts.
 """
 struct PeriodicArray{T, N, A <: AbstractArray{T, N}, F, G} <: AbstractArray{T, N}
     data::A
-    map::F
+    fmap::F
     imap::G
-    function PeriodicArray{T}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        return new{T, N, A, F, G}(data, map, imap)
+    function PeriodicArray{T}(data::A, fmap::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
+        return new{T, N, A, F, G}(data, fmap, imap)
     end
-    function PeriodicArray{T, N}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        return new{T, N, A, F, G}(data, map, imap)
+    function PeriodicArray{T, N}(data::A, fmap::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
+        return new{T, N, A, F, G}(data, fmap, imap)
     end
-    function PeriodicArray{T, N, A}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        return new{T, N, A, F, G}(data, map, imap)
+    function PeriodicArray{T, N, A}(data::A, fmap::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
+        return new{T, N, A, F, G}(data, fmap, imap)
     end
 end
 
-PeriodicArray{T}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
-    PeriodicArray{T}(data, map, _default_imap(map))
-PeriodicArray{T, N}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
-    PeriodicArray{T, N}(data, map, _default_imap(map))
-PeriodicArray{T, N, A}(data::A, map::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
-    PeriodicArray{T, N, A}(data, map, _default_imap(map))
+PeriodicArray{T}(data::A, fmap::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
+    PeriodicArray{T}(data, fmap, _default_imap(fmap))
+PeriodicArray{T, N}(data::A, fmap::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
+    PeriodicArray{T, N}(data, fmap, _default_imap(fmap))
+PeriodicArray{T, N, A}(data::A, fmap::F = identity_map) where {A <: AbstractArray{T, N}, F} where {T, N} =
+    PeriodicArray{T, N, A}(data, fmap, _default_imap(fmap))
 
-_default_imap(map::_identity_map_type) = map
-_default_imap(map) = NegatedShiftMap(map)
+_default_imap(fmap::_identity_map_type) = fmap
+_default_imap(fmap) = NegatedShiftMap(fmap)
 
 """
-    PeriodicArray(data, [map, [imap]])
+    PeriodicArray(data, [fmap, [imap]])
 
 Create a `PeriodicArray` backed by `data`.
-`map` defaults to the identity map. `imap` defaults to `map` with negated shifts.
+`fmap` defaults to the identity fmap. `imap` defaults to `fmap` with negated shifts.
 """
-PeriodicArray(data::A, map::F = identity_map, imap::G = _default_imap(map)) where {A <: AbstractArray{T, N}, F, G} where {T, N} = PeriodicArray{T, N}(data, map, imap)
+PeriodicArray(data::A, fmap::F = identity_map, imap::G = _default_imap(fmap)) where {A <: AbstractArray{T, N}, F, G} where {T, N} = PeriodicArray{T, N}(data, fmap, imap)
 
-PeriodicArray(arr::PeriodicArray, map::F = identity_map) where {F} = arr
+PeriodicArray(arr::PeriodicArray, fmap::F = identity_map) where {F} = arr
 
 """
-    PeriodicArray(def, size, [map])
+    PeriodicArray(def, size, [fmap])
 
 Create a `PeriodicArray` of size `size` filled with value `def`.
-`map` is optional and defaults to the identity map.
+`fmap` is optional and defaults to the identity fmap.
 """
-PeriodicArray(def::T, size, map::F = identity_map) where {T, F} = PeriodicArray(fill(def, size), map)
+PeriodicArray(def::T, size, fmap::F = identity_map) where {T, F} = PeriodicArray(fill(def, size), fmap)
 
 """
     PeriodicVector{T, A, F, G} <: AbstractVector{T}
@@ -65,7 +65,7 @@ PeriodicArray(def::T, size, map::F = identity_map) where {T, F} = PeriodicArray(
 One-dimensional array backed by an `AbstractArray{T, 1}` of type `A` with fixed size and periodic indexing.
 Alias for [`PeriodicArray{T, 1, A, F, G}`](@ref).
 
-    array[index] == map(array[mod1(index, length)], fld(index - 1, length))
+    array[index] == fmap(array[mod1(index, length)], fld(index - 1, length))
 """
 const PeriodicVector{T} = PeriodicArray{T, 1}
 
@@ -84,6 +84,11 @@ PeriodicMatrix(args...) = PeriodicArray(args...)
 Base.IndexStyle(::Type{PeriodicArray{T, N, A, F, G}}) where {T, N, A, F, G} = IndexCartesian()
 Base.IndexStyle(::Type{<:PeriodicVector}) = IndexLinear()
 
+@inline function Base.getproperty(arr::PeriodicArray, name::Symbol)
+    name === :map && return getfield(arr, :fmap)
+    return getfield(arr, name)
+end
+
 @inline Base.size(arr::PeriodicArray) = size(arr.data)
 @inline Base.axes(arr::PeriodicArray) = axes(arr.data)
 @inline Base.parent(arr::PeriodicArray) = arr.data
@@ -91,7 +96,7 @@ Base.IndexStyle(::Type{<:PeriodicVector}) = IndexLinear()
 @inline Base.iterate(arr::PeriodicArray, i...) = iterate(parent(arr), i...)
 
 @inline Base.in(x, arr::PeriodicArray) = in(x, parent(arr))
-@inline Base.copy(arr::PeriodicArray) = PeriodicArray(copy(parent(arr)), arr.map, arr.imap)
+@inline Base.copy(arr::PeriodicArray) = PeriodicArray(copy(parent(arr)), arr.fmap, arr.imap)
 
 @inline Base.dataids(arr::PeriodicArray) = Base.dataids(parent(arr))
 
@@ -102,7 +107,7 @@ function Base.showarg(io::IO, arr::PeriodicArray, toplevel)
 end
 
 @inline function _similar(arr::PeriodicArray, ::Type{T}, dims) where {T}
-    return PeriodicArray(similar(parent(arr), T, dims), arr.map, arr.imap)
+    return PeriodicArray(similar(parent(arr), T, dims), arr.fmap, arr.imap)
 end
 @inline function Base.similar(
         arr::PeriodicArray, ::Type{T}, dims::Tuple{Base.DimOrInd, Vararg{Base.DimOrInd}}

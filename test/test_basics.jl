@@ -198,7 +198,7 @@ end
     end
 
     @testset "type stability" begin
-        v3 = @inferred(map(x -> x + 1, PeriodicArray([1, 2, 3, 4])))
+        v3 = @inferred(fmap(x -> x + 1, PeriodicArray([1, 2, 3, 4])))
         @test v3 isa PeriodicVector{Int64}
         @test v3 == PeriodicArray([2, 3, 4, 5])
         @test similar(v3, Base.OneTo(4)) isa typeof(v3)
@@ -211,7 +211,7 @@ end
         @test v5 isa PeriodicVector{Bool, Vector{Bool}}
         @test v5 == PeriodicArray([0, 0, 1, 1])
 
-        # scalar-first broadcast (previously: FieldError on `map`)
+        # scalar-first broadcast (previously: FieldError on `fmap`)
         v6 = @inferred(1 .+ PeriodicArray([1, 2, 3, 4]))
         @test v6 isa PeriodicVector{Int64}
         @test v6 == PeriodicArray([2, 3, 4, 5])
@@ -421,7 +421,7 @@ end
     @testset "1D" begin
         a = PeriodicVector([1, 2, 3])
 
-        # outer as scalar — identity map tiles data unchanged
+        # outer as scalar — identity fmap tiles data unchanged
         ar = repeat(a; outer = 2)
         @test parent(ar) == [1, 2, 3, 1, 2, 3]
         @test length(ar) == 6

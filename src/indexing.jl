@@ -11,7 +11,7 @@ function cell_position(arr::AbstractArray{T, N}, I::Vararg{Integer, N}) where {T
     return i_base, i_shift
 end
 
-# Special case for trivial map (identical to CelledArrays.jl)
+# Special case for trivial fmap (identical to CelledArrays.jl)
 @inline function Base.getindex(
         arr::PeriodicArray{T, N, A, _identity_map_type, _identity_map_type}, i::Int
     ) where {A <: AbstractArray{T, N}} where {T, N}
@@ -30,7 +30,7 @@ end
 
     @inbounds v = getindex(parent(arr), i_base...)
     all(iszero, i_shift) && return v
-    return arr.map(v, i_shift...)
+    return arr.fmap(v, i_shift...)
 end
 @inline function Base.setindex!(
         arr::PeriodicArray{T, N, A, F, G}, v, I::Vararg{Int, N}

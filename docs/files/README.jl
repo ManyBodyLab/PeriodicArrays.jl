@@ -1,19 +1,32 @@
 # # PeriodicArrays.jl
 
 # `PeriodicArrays.jl` adds the `PeriodicArray` type which can be backed by any `AbstractArray`. The idea of this package is based on [`CircularArrays.jl`](https://github.com/Vexatos/CircularArrays.jl) and extends its functionality to support user-defined translation rules for periodic indexing.
-# A `PeriodicArray{T,N,A,F}` is an `AbstractArray{T,N}` backed by a data array of type `A<:AbstractArray{T,N}` and a map `f` of type `F`.
-# The map defines how data in out-of-bounds indices is translated to valid indices in the data array.
+# A `PeriodicArray{T,N,A,F,G}` is an `AbstractArray{T,N}` backed by a data array of type `A<:AbstractArray{T,N}`, a forward map `fmap` of type `F`, and an inverse map `imap` of type `G`.
+# The maps define how data at out-of-bounds indices is translated to and from valid indices in the data array.
 
-# `f` can be any callable object (e.g. a function or a struct), which defines
+# `fmap` and `imap` can be any callable objects (e.g. functions or structs) that define
 # ```julia
-# f(x, shift::Vararg{Int,N})
+# fmap(x, shift::Vararg{Int,N})
 # ```
-# where `x` is an element of the array and shift encodes the unit cell, in which we index.
-# `f` has to satisfy the following properties, which are not checked at construction time:
-# - The output type of `f` has to be the same as the element type of the data array.
-# - `f` is invertible with inverse `f(x, -shift...)`, i.e. it satisfies `f(f(x, shift...), -shift...) == x`.
+# where `x` is an element of the array and `shift` encodes the unit cell in which we index.
 
-# If `f` is not provided, the identity map is used and the `PeriodicArray` behaves like a `CircularArray`.
+# `PeriodicArray` accepts the maps as `PeriodicArray(data, fmap)` or
+# `PeriodicArray(data, fmap, imap)`.
+# If neither map is provided, both default to the identity and the array behaves like a `CircularArray`.
+
+# **Constraints on `imap`** (the inverse map used by `setindex!`):
+# - `imap` must satisfy `imap(fmap(x, shift...), shift...) == x` for all valid `x` and
+#   `shift`, so that round-tripping a value through `getindex`/`setindex!` is lossless.
+# - When `imap` is omitted, it defaults to `(x, shifts...) -> fmap(x, -shifts...)`.
+#   This default is correct whenever `fmap` is self-inverse under shift negation, i.e.
+#   `fmap(fmap(x, s...), -s...) == x`.
+# - If `fmap` does **not** satisfy the self-inverse property, supply a custom `imap`.
+#   If mutation through out-of-bounds indices should be explicitly forbidden, pass an
+#   `imap` that e.g. throws:
+#   ```julia
+#   imap_error(x, shift...) = error("mutation through out-of-bounds indices is not supported")
+#   a = PeriodicArray(data, fmap, imap_error)
+#   ```
 
 # This package is compatible with [`OffsetArrays.jl`](https://github.com/JuliaArrays/OffsetArrays.jl).
 
@@ -69,6 +82,30 @@
 #  12  15  18  22  25
 # ```
 
+# ## Known Limitations
+
+# **Iterated indexing for mutation does not work** when the map is non-trivial.
+# For a `PeriodicArray` whose elements are themselves mutable (e.g. an array of matrices), writing
+
+# ```julia
+# x[out_of_bounds_index][i, j] = value
+# ```
+
+# silently does nothing to `x`. The reason is that `x[out_of_bounds_index]` applies the map and returns a *new, transformed copy* of the element; the subsequent assignment mutates only that temporary object, not the underlying data.
+
+# For in-bounds indices the element is returned by reference and mutation works as expected.
+
+# **Workaround — `mapped_ref`:**
+
+# ```julia
+# ref = mapped_ref(x, out_of_bounds_index)
+# ref[i, j] = value   # applies imap and writes back into parent(x)
+# ```
+
+# `mapped_ref` returns a `MappedRef`: a lazy wrapper that applies the forward map on reads
+# and the inverse map on writes, so no temporary copy is created and the mutation propagates
+# correctly into the underlying data.
+
 # ## License
 
-# PeriodicArrays.jl is licensed under the MIT License. By using or interacting with this software in any way, you agree to the license of this software.
+# PeriodicArrays.jl is licensed under the [MIT License](LICENSE). By using or interacting with this software in any way, you agree to the license of this software.

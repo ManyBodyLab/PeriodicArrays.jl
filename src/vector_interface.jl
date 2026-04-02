@@ -1,4 +1,4 @@
-Base.empty(a::PeriodicVector{T}, ::Type{U} = T) where {T, U} = PeriodicVector{U}(U[], a.map, a.imap)
+Base.empty(a::PeriodicVector{T}, ::Type{U} = T) where {T, U} = PeriodicVector{U}(U[], a.fmap, a.imap)
 Base.empty!(a::PeriodicVector) = (empty!(parent(a)); a)
 Base.push!(a::PeriodicVector, x...) = (push!(parent(a), x...); a)
 Base.append!(a::PeriodicVector, items) = (append!(parent(a), items); a)
@@ -12,7 +12,7 @@ function Base.deleteat!(a::PeriodicVector, i::Integer)
 end
 
 function Base.deleteat!(a::PeriodicVector, inds)
-    deleteat!(parent(a), sort!(unique(map(i -> mod(i, eachindex(IndexLinear(), parent(a))), inds))))
+    deleteat!(parent(a), sort!(unique(fmap(i -> mod(i, eachindex(IndexLinear(), parent(a))), inds))))
     return a
 end
 

@@ -1,5 +1,5 @@
 function Base.repeat(A::PeriodicArray{T, N}; inner = nothing, outer = nothing) where {T, N}
-    map = A.map
+    fmap = A.fmap
     # If no outer repetition is requested, just repeat the parent array as usual
     A_new = repeat(parent(A); inner = inner)
 
@@ -17,27 +17,27 @@ function Base.repeat(A::PeriodicArray{T, N}; inner = nothing, outer = nothing) w
         ps = size(base)
         newsize = ntuple(i -> ps[i] * outer[i], N)
 
-        # create a tiled parent filled with translated values from `map`
+        # create a tiled parent filled with translated values from `fmap`
         A_tiled = similar(base, newsize)
         tile_ranges = ntuple(i -> 0:(outer[i] - 1), N)
         for tile in CartesianIndices(tile_ranges)
             shifts = Tuple(Int(tile[i]) for i in 1:N)
             for pos in CartesianIndices(base)
                 tgt = ntuple(i -> tile[i] * ps[i] + (pos[i] - firstindex(axs[i]) + 1), N)
-                @inbounds A_tiled[tgt...] = map(base[pos], shifts...)
+                @inbounds A_tiled[tgt...] = fmap(base[pos], shifts...)
             end
         end
 
         @inline function map_new(x, shift::Vararg{Integer, N})
-            # shifts passed to this map refer to super-cell shifts; amplify
+            # shifts passed to this fmap refer to super-cell shifts; amplify
             # by `outer` to convert them to original unit-cell shifts.
             amplified = ntuple(i -> shift[i] * outer[i], N)
-            return map(x, amplified...)
+            return fmap(x, amplified...)
         end
 
         imap_new = NegatedShiftMap(map_new)
         return PeriodicArray(A_tiled, map_new, imap_new)
     end
 
-    return PeriodicArray(A_new, map, A.imap)
+    return PeriodicArray(A_new, fmap, A.imap)
 end

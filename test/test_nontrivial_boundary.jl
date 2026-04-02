@@ -195,7 +195,7 @@ for f in translation_functions
         end
 
         @testset "type stability" begin
-            v3 = @inferred(map(x -> x + 1, PeriodicArray([1, 2, 3, 4], f)))
+            v3 = @inferred(fmap(x -> x + 1, PeriodicArray([1, 2, 3, 4], f)))
             @test v3 isa PeriodicVector{Int64}
             @test v3 == PeriodicArray([2, 3, 4, 5], f)
             @test similar(v3, Base.OneTo(4)) isa typeof(v3)
@@ -208,7 +208,7 @@ for f in translation_functions
             @test v5 isa PeriodicVector{Bool, Vector{Bool}}
             @test v5 == PeriodicArray([0, 0, 1, 1], f)
 
-            # scalar-first broadcast (previously: FieldError on `map`)
+            # scalar-first broadcast (previously: FieldError on `fmap`)
             v6 = @inferred(1 .+ PeriodicArray([1, 2, 3, 4], f))
             @test v6 isa PeriodicVector{Int64}
             @test v6 == PeriodicArray([2, 3, 4, 5], f)
@@ -288,7 +288,7 @@ for f in translation_functions
         @test c3[3, CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
         @test c3[Int32(3), CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
 
-        @test vec(c3[:, [CartesianIndex()], 1, 5]) == map(x -> f(x, 0, 0, 1), vec(t3[:, 1, 1]))
+        @test vec(c3[:, [CartesianIndex()], 1, 5]) == fmap(x -> f(x, 0, 0, 1), vec(t3[:, 1, 1]))
 
         @test IndexStyle(c3) == IndexStyle(typeof(c3)) == IndexCartesian()
 
@@ -348,8 +348,8 @@ for f in translation_functions
         @test size(parent(ar)) == (length(base) * 2,)
 
         val = 5
-        @test ar.map(val, 1) == a.map(val, 2)
-        @test ar.map(val, 3) == a.map(val, 6)
+        @test ar.fmap(val, 1) == a.fmap(val, 2)
+        @test ar.fmap(val, 3) == a.fmap(val, 6)
 
         # inner repetition
         ai = repeat(a; inner = 2)
@@ -383,8 +383,8 @@ for f in translation_functions
         @test parent(br) == expected2
         @test size(parent(br)) == (size(base, 1) * o1, size(base, 2) * o2)
 
-        @test br.map(1, 1, 2) == b.map(1, 2, 6)
-        @test br.map(7, 0, 1) == b.map(7, 0, 3)
+        @test br.fmap(1, 1, 2) == b.fmap(1, 2, 6)
+        @test br.fmap(7, 0, 1) == b.fmap(7, 0, 3)
 
         # inner repetition in 2D
         bi = repeat(b; inner = (2, 1))

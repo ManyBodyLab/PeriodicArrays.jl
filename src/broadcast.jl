@@ -20,5 +20,5 @@ _find_pa(::Any, rest...) = _find_pa(rest...)
         bc::Broadcast.Broadcasted{PeriodicArrayStyle{N}}, ::Type{ElType}
     ) where {N, ElType}
     pa = _find_pa(bc)
-    return PeriodicArray(similar(Array{ElType, N}, axes(bc)), pa.map, pa.imap)
+    return PeriodicArray(similar(Array{ElType, N}, axes(bc)), pa.fmap, pa.imap)
 end
