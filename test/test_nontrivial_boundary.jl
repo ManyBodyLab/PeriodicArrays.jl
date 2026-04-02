@@ -73,7 +73,7 @@ for f in translation_functions
 
         @test size(v1, 1) == 5
         @test parent(v1) == data
-        @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(f)}
+        @test typeof(v1) == PeriodicVector{Int64, Vector{Int64}, typeof(f), PeriodicArrays.NegatedShiftMap{typeof(f)}}
         @test isa(v1, PeriodicVector)
         @test isa(v1, AbstractVector{Int})
         @test !isa(v1, AbstractVector{String})
@@ -208,7 +208,7 @@ for f in translation_functions
             @test v5 isa PeriodicVector{Bool, Vector{Bool}}
             @test v5 == PeriodicArray([0, 0, 1, 1], f)
 
-            # scalar-first broadcast (previously: FieldError on `map`)
+            # scalar-first broadcast (previously: FieldError on `fmap`)
             v6 = @inferred(1 .+ PeriodicArray([1, 2, 3, 4], f))
             @test v6 isa PeriodicVector{Int64}
             @test v6 == PeriodicArray([2, 3, 4, 5], f)
@@ -348,8 +348,8 @@ for f in translation_functions
         @test size(parent(ar)) == (length(base) * 2,)
 
         val = 5
-        @test ar.map(val, 1) == a.map(val, 2)
-        @test ar.map(val, 3) == a.map(val, 6)
+        @test ar.fmap(val, 1) == a.fmap(val, 2)
+        @test ar.fmap(val, 3) == a.fmap(val, 6)
 
         # inner repetition
         ai = repeat(a; inner = 2)
@@ -383,8 +383,8 @@ for f in translation_functions
         @test parent(br) == expected2
         @test size(parent(br)) == (size(base, 1) * o1, size(base, 2) * o2)
 
-        @test br.map(1, 1, 2) == b.map(1, 2, 6)
-        @test br.map(7, 0, 1) == b.map(7, 0, 3)
+        @test br.fmap(1, 1, 2) == b.fmap(1, 2, 6)
+        @test br.fmap(7, 0, 1) == b.fmap(7, 0, 3)
 
         # inner repetition in 2D
         bi = repeat(b; inner = (2, 1))
