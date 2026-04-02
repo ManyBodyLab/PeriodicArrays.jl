@@ -288,7 +288,7 @@ for f in translation_functions
         @test c3[3, CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
         @test c3[Int32(3), CartesianIndex(3, 7)] == f(c3[1, 3, 3], 1, 0, 1)
 
-        @test vec(c3[:, [CartesianIndex()], 1, 5]) == fmap(x -> f(x, 0, 0, 1), vec(t3[:, 1, 1]))
+        @test vec(c3[:, [CartesianIndex()], 1, 5]) == map(x -> f(x, 0, 0, 1), vec(t3[:, 1, 1]))
 
         @test IndexStyle(c3) == IndexStyle(typeof(c3)) == IndexCartesian()
 
