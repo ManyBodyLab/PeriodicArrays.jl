@@ -195,7 +195,7 @@ for f in translation_functions
         end
 
         @testset "type stability" begin
-            v3 = @inferred(fmap(x -> x + 1, PeriodicArray([1, 2, 3, 4], f)))
+            v3 = @inferred(map(x -> x + 1, PeriodicArray([1, 2, 3, 4], f)))
             @test v3 isa PeriodicVector{Int64}
             @test v3 == PeriodicArray([2, 3, 4, 5], f)
             @test similar(v3, Base.OneTo(4)) isa typeof(v3)
