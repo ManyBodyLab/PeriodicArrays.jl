@@ -14,12 +14,12 @@ end
 # Special case for trivial map (identical to CelledArrays.jl)
 @inline function Base.getindex(
         arr::PeriodicArray{T, N, A, _identity_map_type, _identity_map_type}, i::Int
-    ) where {A <: AbstractArray{T, N}} where  {T, N}
+    ) where {A <: AbstractArray{T, N}} where {T, N}
     return @inbounds getindex(parent(arr), mod(i, eachindex(IndexLinear(), parent(arr))))
 end
 @inline function Base.setindex!(
         arr::PeriodicArray{T, N, A, _identity_map_type, _identity_map_type}, v, i::Int
-    ) where {A <: AbstractArray{T, N}} where  {T, N}
+    ) where {A <: AbstractArray{T, N}} where {T, N}
     return @inbounds setindex!(parent(arr), v, mod(i, eachindex(IndexLinear(), parent(arr))))
 end
 

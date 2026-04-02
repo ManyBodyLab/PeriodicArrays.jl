@@ -21,13 +21,13 @@ struct PeriodicArray{T, N, A <: AbstractArray{T, N}, F, G} <: AbstractArray{T, N
     map::F
     imap::G
     function PeriodicArray{T}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        new{T, N, A, F, G}(data, map, imap)
+        return new{T, N, A, F, G}(data, map, imap)
     end
     function PeriodicArray{T, N}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        new{T, N, A, F, G}(data, map, imap)
+        return new{T, N, A, F, G}(data, map, imap)
     end
     function PeriodicArray{T, N, A}(data::A, map::F, imap::G) where {A <: AbstractArray{T, N}, F, G} where {T, N}
-        new{T, N, A, F, G}(data, map, imap)
+        return new{T, N, A, F, G}(data, map, imap)
     end
 end
 
